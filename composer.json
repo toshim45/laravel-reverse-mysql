@@ -1,0 +1,29 @@
+{
+  "name": "toshim45/laravel-reverse-mysql",
+  "description": "generate crud from mysql table",
+  "keywords": [
+    "laravel",
+    "crud",
+    "generator",
+    "mysql"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Artiko Wibowo",
+      "email": "artikow@gmail.com"
+    }
+  ],
+  "require": {
+    "laravel/framework": "^5.6.0",
+    "php": ">=7.0.0",
+    "laravelcollective/html": "^5.6.0"
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Toshim45\\ReverseMysql\\ServiceProvider"
+      ]
+    }
+  }
+}
