@@ -19,10 +19,15 @@
     "php": ">=7.0.0",
     "laravelcollective/html": "^5.6.0"
   },
+  "autoload": {
+    "psr-4": {
+      "Toshim45\\LaraverReverseMysql\\": "src/"
+    }
+  },
   "extra": {
     "laravel": {
       "providers": [
-        "Toshim45\\ReverseMysql\\ServiceProvider"
+        "Toshim45\\LaravelReverseMysql\\ServiceProvider"
       ]
     }
   }

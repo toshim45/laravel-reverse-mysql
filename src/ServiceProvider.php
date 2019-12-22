@@ -1,9 +1,9 @@
 <?php
 
-namespace Toshim45\ReverseMysql;
+namespace Toshim45\LaravelReverseMysql;
 
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
-use Toshim45\ReverseMysql\Console\Commands\MysqlReverse;
+use Toshim45\LaravelReverseMysql\Console\Commands\MysqlReverse;
 
 class ServiceProvider extends BaseServiceProvider {
 

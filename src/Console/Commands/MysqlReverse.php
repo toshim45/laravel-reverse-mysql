@@ -1,6 +1,6 @@
 <?php
 
-namespace Toshim45\ReverseMysql\Console\Commands;
+namespace Toshim45\LaravelReverseMysql\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
