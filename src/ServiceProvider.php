@@ -12,7 +12,7 @@ class ServiceProvider extends BaseServiceProvider {
 	public function boot() {
 		$this->commands([MysqlReverse::class]);
 
-		$stubPath = $this->packagePath('resources/stubs');
+		$stubPath = __DIR__ . '/../resources/stubs';
 		$this->publishes([
 			$stubPath => resource_path('stubs'),
 		], 'stubs');
