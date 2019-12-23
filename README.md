@@ -32,12 +32,12 @@ your `stubs` will be placed in `resources` folder, edit as you need, we just pro
 
 ## How To
 ### Basic Usage
-- generate model with `php artisan make:model {ModelName} -mcr` options, make sure the model name is singular [PascalCase](http://wiki.c2.com/?PascalCase)
+- generate model with `php artisan make:model {ModelName} -mcr` options, make sure your model name is *singular* [PascalCase](http://wiki.c2.com/?PascalCase)
 - run `php artisan reverse:mysql {table-name} -c -r`
 - run `phpfmt`
 
 ### Custom Stub
-- generate model with `php artisan make:model {ModelName} -mcr` options, make sure the model name is singular [PascalCase](http://wiki.c2.com/?PascalCase)
+- generate model with `php artisan make:model {ModelName} -mcr` options, make sure your model name is *singular* [PascalCase](http://wiki.c2.com/?PascalCase)
 - update content `resources/stubs`, keep both `{{tableName}}` and `{{tableContent}}` variables, which is used by this generator
 - run `php artisan reverse:mysql {table_name} -c -r`
 - run `phpfmt`
