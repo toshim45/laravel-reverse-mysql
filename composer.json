@@ -2,6 +2,7 @@
   "name": "toshim45/laravel-reverse-mysql",
   "description": "generate crud from mysql table",
   "type": "package",
+  "version": "0.0.1",
   "keywords": [
     "laravel",
     "crud",
