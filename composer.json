@@ -1,6 +1,7 @@
 {
   "name": "toshim45/laravel-reverse-mysql",
   "description": "generate crud from mysql table",
+  "type": "package",
   "keywords": [
     "laravel",
     "crud",
@@ -21,7 +22,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Toshim45\\LaraverReverseMysql\\": "src/"
+      "Toshim45\\LaravelReverseMysql\\": "src/"
     }
   },
   "extra": {
