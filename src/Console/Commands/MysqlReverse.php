@@ -41,13 +41,14 @@ class MysqlReverse extends Command {
 		$resource       = $this->option('resource');
 		$rawTableStruct = DB::select(DB::raw("SHOW COLUMNS FROM `" . $table . "`"));
 		$tableStruct    = $this->parseTableStruct($rawTableStruct);
+
 		if ($controller) {
+			$this->applyModel($table, $tableStruct);
 			$this->applyController($table, $tableStruct);
 		}
 		if ($resource) {
 			$this->applyResource($table, $tableStruct);
 		}
-
 	}
 
 	public function applyResource($table, $columns) {
@@ -121,11 +122,32 @@ class MysqlReverse extends Command {
 		file_put_contents(resource_path() . '/views/' . $table . '/create.blade.php', $content);
 	}
 
+	public function applyFilterIndexResource($table, $columns) {
+		$content = file_get_contents(resource_path() . '/stubs/filter.stub');
+		if (!$content) {
+			throw new Exception("Error: filter stub", 1);
+		}
+
+		$generated = [];
+		foreach ($columns as $k => $v) {
+			$generated[] = '<div class="form-group">';
+			$generated[] = sprintf('{{ Form::label(\'%s\', \'%s\') }}', $k, Str::title($k));
+			$generated[] = sprintf('{{ Form::text(\'%s\', \'\', array(\'class\' => \'form-control\')) }}', $k);
+			$generated[] = '</div>';
+		}
+		$content = str_replace('{{tableName}}', $table, $content);
+		$content = str_replace('{{tableContent}}', implode("\r\n", $generated), $content);
+
+		file_put_contents(resource_path() . '/views/' . $table . '/filter.blade.php', $content);
+	}
+
 	public function applyIndexResource($table, $columns) {
 		$content = file_get_contents(resource_path() . '/stubs/index.stub');
 		if (!$content) {
 			throw new Exception("Error: index stub", 1);
 		}
+
+		$this->applyFilterIndexResource($table, $columns);
 
 		$generated   = [];
 		$generated[] = '@if (session(\'status\'))';
@@ -153,10 +175,39 @@ class MysqlReverse extends Command {
 		$generated[] = '</thead>';
 		$generated[] = '</table>';
 
+		$filters = sprintf('@include(\'%s.filter\',[])', $table);
+
+		$content = str_replace('{{tableFilter}}', $filters, $content);
 		$content = str_replace('{{tableName}}', $table, $content);
 		$content = str_replace('{{tableContent}}', implode("\r\n", $generated), $content);
 
 		file_put_contents(resource_path() . '/views/' . $table . '/index.blade.php', $content);
+	}
+
+	public function applyModel($table, $columns) {
+		$className = Str::studly(Str::singular($table));
+		$modelName = Str::camel(Str::singular($table));
+
+		$fileModel = app_path() . '/' . $className . '.php';
+		$content   = file_get_contents($fileModel);
+		if (!$content) {
+			throw new Exception("Error: controller " . $fileModel, 1);
+		}
+
+		$generated = [];
+		foreach ($columns as $k => $v) {
+			$variableName = Str::camel($k);
+			$generated[]  = sprintf('public function scope%s($query,$%s){', Str::studly($k), $variableName);
+			$generated[]  = sprintf('if (empty($%s)) { return $query; }', $variableName);
+			$generated[]  = sprintf('return $query->where(\'%s\',\'=\',$%s);', $k, $variableName);
+			$generated[]  = '}';
+		}
+
+		$namedTemplate = $this->applyNamedClassTemplate(self::MDL_CLASS, $className);
+		$scopes        = str_replace('//', implode("\r\n", $generated), $namedTemplate);
+		$content       = str_replace($namedTemplate, $scopes, $content);
+
+		file_put_contents($fileModel, $content);
 	}
 
 	public function applyController($table, $columns) {
@@ -180,19 +231,19 @@ class MysqlReverse extends Command {
 		$store   = $this->applyStoreController($table, $className, $columns);
 		$content = str_replace(self::CTRL_FUNC_STORE, $store, $content);
 
-		$namedTemplate = $this->applyNamedTemplate(self::CTRL_FUNC_SHOW, $className, $modelName);
+		$namedTemplate = $this->applyNamedControllerFunctionTemplate(self::CTRL_FUNC_SHOW, $className, $modelName);
 		$show          = $this->applyShowController($namedTemplate, $table, $className, $modelName, $columns);
 		$content       = str_replace($namedTemplate, $show, $content);
 
-		$namedTemplate = $this->applyNamedTemplate(self::CTRL_FUNC_DESTROY, $className, $modelName);
+		$namedTemplate = $this->applyNamedControllerFunctionTemplate(self::CTRL_FUNC_DESTROY, $className, $modelName);
 		$destroy       = $this->applyDestroyController($namedTemplate, $table, $className, $modelName, $columns);
 		$content       = str_replace($namedTemplate, $destroy, $content);
 
-		$namedTemplate = $this->applyNamedTemplate(self::CTRL_FUNC_EDIT, $className, $modelName);
+		$namedTemplate = $this->applyNamedControllerFunctionTemplate(self::CTRL_FUNC_EDIT, $className, $modelName);
 		$edit          = $this->applyEditController($namedTemplate, $table, $className, $modelName, $columns);
 		$content       = str_replace($namedTemplate, $edit, $content);
 
-		$namedTemplate = $this->applyNamedTemplate(self::CTRL_FUNC_UPDATE, $className, $modelName);
+		$namedTemplate = $this->applyNamedControllerFunctionTemplate(self::CTRL_FUNC_UPDATE, $className, $modelName);
 		$update        = $this->applyUpdateController($namedTemplate, $table, $className, $modelName, $columns);
 		$content       = str_replace($namedTemplate, $update, $content);
 
@@ -214,7 +265,7 @@ class MysqlReverse extends Command {
 		return str_replace('//', implode("\r\n", $generated), $template);
 	}
 
-	public function applyDestroyController($template, $table, $classname, $modelName, $columns) {
+	public function applyDestroyController($template, $table, $className, $modelName, $columns) {
 		$generated   = [];
 		$generated[] = sprintf('$%s->delete();', $modelName);
 		$generated[] = sprintf('return redirect(\'%s\')->with(\'status\', \'deleted\');', $table);
@@ -254,13 +305,21 @@ class MysqlReverse extends Command {
 			$generated[] = sprintf('$%s = $request->query(\'%s\');', Str::camel($k), $k);
 		}
 
-		$generated[] = sprintf('$models = %s::orderBy(\'id\',\'desc\')->paginate($pageSize);', $className);
+		$generated[] = sprintf('$models = %s::orderBy(\'id\',\'desc\')', $className);
+		foreach ($columns as $k => $v) {
+			$generated[] = sprintf('->%s($%s)', Str::camel($k), Str::camel($k));
+		}
+		$generated[] = '->paginate($pageSize);';
 		$generated[] = sprintf('return view(\'%s.index\',[\'models\'=>$models]);', $table);
 
 		return str_replace('//', implode("\r\n", $generated), self::CTRL_FUNC_INDEX);
 	}
 
-	public function applyNamedTemplate($template, $className, $modelName) {
+	public function applyNamedClassTemplate($template, $className) {
+		return sprintf($template, $className);
+	}
+
+	public function applyNamedControllerFunctionTemplate($template, $className, $modelName) {
 		return sprintf($template, $className, $modelName);
 	}
 
@@ -275,6 +334,12 @@ class MysqlReverse extends Command {
 
 		return $result;
 	}
+
+	const MDL_CLASS =
+		'class %s extends Model
+{
+    //
+}';
 
 	const CTRL_FUNC_UPDATE =
 		'public function update(Request $request, %s $%s)
@@ -328,7 +393,8 @@ class MysqlReverse extends Command {
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
-     */public function index(Request $request)
+     */
+	public function index(Request $request)
     {
     	//
     }';
