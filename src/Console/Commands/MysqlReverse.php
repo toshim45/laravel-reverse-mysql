@@ -41,10 +41,13 @@ class MysqlReverse extends Command {
 		$resource       = $this->option('resource');
 		$rawTableStruct = DB::select(DB::raw("SHOW COLUMNS FROM `" . $table . "`"));
 		$tableStruct    = $this->parseTableStruct($rawTableStruct);
+		$className      = Str::studly(Str::singular($table));
 
 		if ($controller) {
-			$this->applyModel($table, $tableStruct);
-			$this->applyController($table, $tableStruct);
+			$this->applyModel($table, $tableStruct, $className);
+			$this->applyController($table, $tableStruct, $className);
+			printf("Please add these line to your routes:\r\n");
+			printf("\e[1;34;43mRoute::resource('%s', '%sController');\e[0m\r\n", $table, $className);
 		}
 		if ($resource) {
 			$this->applyResource($table, $tableStruct);
@@ -184,8 +187,7 @@ class MysqlReverse extends Command {
 		file_put_contents(resource_path() . '/views/' . $table . '/index.blade.php', $content);
 	}
 
-	public function applyModel($table, $columns) {
-		$className = Str::studly(Str::singular($table));
+	public function applyModel($table, $columns, $className) {
 		$modelName = Str::camel(Str::singular($table));
 
 		$fileModel = app_path() . '/' . $className . '.php';
@@ -210,8 +212,7 @@ class MysqlReverse extends Command {
 		file_put_contents($fileModel, $content);
 	}
 
-	public function applyController($table, $columns) {
-		$className = Str::studly(Str::singular($table));
+	public function applyController($table, $columns, $className) {
 		$modelName = Str::camel(Str::singular($table));
 		//TODO: windows OS
 		$fileController = app_path() . '/Http/Controllers/' . $className . 'Controller.php';
