@@ -47,7 +47,7 @@ Do all generation **before you add some codes** to your new model & controller
 - run `phpfmt` or other php formatter
 - add this resources to routes
 
-### Stub Example[WIP]
+### Stub Example
 
 pls check [github](https://github.com/toshim45/laravel-reverse-mysql/tree/master/examples) and copy paste folder content from one of these:
 - [jeroennoten-adminlte](https://github.com/jeroennoten/Laravel-AdminLTE/tree/laravel5-adminlte2) stub, install jeroennoten-adminlte package before generating crud
