@@ -5,6 +5,7 @@ laravel package, basically reverse field from mysql into controller + views, jus
 - need custom theme, we just provide simple html stub, edit as you need
 - need a lot of additional code after generate
 - need generator which simply read your database fields
+- no code bloat, no helper files, it just your model, controller and crud blades
 
 ## Do not use this
 - if you need generator with migration included, because this reverse code from mysql
@@ -37,17 +38,20 @@ Do all generation **before you add some codes** to your new model & controller
 - generate model with `php artisan make:model {ModelName} -mcr` options, make sure your model name is **singular** [PascalCase](http://wiki.c2.com/?PascalCase)
 - run `php artisan reverse:mysql {table-name} -c -r` , table name is usually [snake_case](https://en.wikipedia.org/wiki/Snake_case)
 - run `phpfmt` or other php formatter
+- add this resources to routes
 
 ### Custom Stub
 - generate model with `php artisan make:model {ModelName} -mcr` options, make sure your model name is **singular** [PascalCase](http://wiki.c2.com/?PascalCase)
 - update content `resources/stubs`, keep both `{{tableName}}` and `{{tableContent}}` variables, which is used by this generator, var `{{tableFilter}}` will create filter with equal query, you can change query at model class.
 - run `php artisan reverse:mysql {table_name} -c -r`, table name is usually [snake_case](https://en.wikipedia.org/wiki/Snake_case)
 - run `phpfmt` or other php formatter
+- add this resources to routes
 
 ### Stub Example[WIP]
 
 pls check [github](https://github.com/toshim45/laravel-reverse-mysql/tree/master/examples) and copy paste folder content from one of these:
-- [jeroennoten-adminlte](https://github.com/jeroennoten/Laravel-AdminLTE/tree/laravel5-adminlte2) stub, install jeroennoten-adminlte plugin before generating crud
+- [jeroennoten-adminlte](https://github.com/jeroennoten/Laravel-AdminLTE/tree/laravel5-adminlte2) stub, install jeroennoten-adminlte package before generating crud
+
 
 ## Notes
 - Tested on OSX, need help for other OS
