@@ -36,14 +36,14 @@ Do all generation **before you add some codes** to your new model & controller
 ## How To
 ### Basic Usage
 - generate model with `php artisan make:model {ModelName} -mcr` options, make sure your model name is **singular** [PascalCase](http://wiki.c2.com/?PascalCase)
-- run `php artisan reverse:mysql {table-name} -c -r` , table name is usually [snake_case](https://en.wikipedia.org/wiki/Snake_case)
+- run `php artisan reverse:mysql {table-name} -c -r` , table name is usually plural [snake_case](https://en.wikipedia.org/wiki/Snake_case)
 - run `phpfmt` or other php formatter
 - add this resources to routes
 
 ### Custom Stub
 - generate model with `php artisan make:model {ModelName} -mcr` options, make sure your model name is **singular** [PascalCase](http://wiki.c2.com/?PascalCase)
 - update content `resources/stubs`, keep both `{{tableName}}` and `{{tableContent}}` variables, which is used by this generator, var `{{tableFilter}}` will create filter with equal query, you can change query at model class.
-- run `php artisan reverse:mysql {table_name} -c -r`, table name is usually [snake_case](https://en.wikipedia.org/wiki/Snake_case)
+- run `php artisan reverse:mysql {table_name} -c -r`, table name is usually plural [snake_case](https://en.wikipedia.org/wiki/Snake_case)
 - run `phpfmt` or other php formatter
 - add this resources to routes
 
