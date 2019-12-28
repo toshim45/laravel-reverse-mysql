@@ -56,5 +56,5 @@ pls check [github](https://github.com/toshim45/laravel-reverse-mysql/tree/master
 ## Notes
 - Tested on OSX, need help for other OS
 - Tested on laravel 5.6, need help for >5.6 & 6.* (i dont think will support for 4.*)
-- I'm working on formatting generated code, but for now you can use your IDE
+- For code formatting ~I'm working on formatting generated code, but for now~ you can use your IDE, already tried some code formatter, almost of them install binary in your vendor folder, I thought that is inappropriate, so just use your IDE formatter
 - only support mysql
