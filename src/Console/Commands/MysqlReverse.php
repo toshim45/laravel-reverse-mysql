@@ -73,6 +73,9 @@ class MysqlReverse extends Command {
 
 		$generated = [];
 		foreach ($columns as $k => $v) {
+			if (Str::startsWith($k, 'created') || Str::startsWith($k, 'updated')) {
+				continue;
+			}
 			$generated[] = '<div class="form-group">';
 			$generated[] = sprintf('{{ Form::label(\'%s\', \'%s\') }}', $k, Str::title($k));
 			$generated[] = sprintf('{{ Form::text(\'%s\', $model->%s, array(\'class\' => \'form-control\')) }}', $k, $k);
@@ -113,6 +116,9 @@ class MysqlReverse extends Command {
 
 		$generated = [];
 		foreach ($columns as $k => $v) {
+			if (Str::startsWith($k, 'created') || Str::startsWith($k, 'updated')) {
+				continue;
+			}
 			$generated[] = '<div class="form-group">';
 			$generated[] = sprintf('{{ Form::label(\'%s\', \'%s\') }}', $k, Str::title($k));
 			$generated[] = sprintf('{{ Form::text(\'%s\', \'\', array(\'class\' => \'form-control\')) }}', $k);
@@ -254,6 +260,9 @@ class MysqlReverse extends Command {
 	public function applyUpdateController($template, $table, $className, $modelName, $columns) {
 		$generated = [];
 		foreach ($columns as $k => $v) {
+			if (Str::startsWith($k, 'created') || Str::startsWith($k, 'updated')) {
+				continue;
+			}
 			$generated[] = sprintf('$%s->%s = $request->input(\'%s\');', $modelName, $k, $k);
 		}
 		$generated[] = sprintf('$%s->save();', $modelName);
@@ -284,6 +293,9 @@ class MysqlReverse extends Command {
 		$generated   = [];
 		$generated[] = sprintf('$model = new %s;', $className);
 		foreach ($columns as $k => $v) {
+			if (Str::startsWith($k, 'created') || Str::startsWith($k, 'updated')) {
+				continue;
+			}
 			$generated[] = sprintf('$model->%s = $request->input(\'%s\');', $k, $k);
 		}
 		$generated[] = '$model->save();';
@@ -303,11 +315,17 @@ class MysqlReverse extends Command {
 		$generated   = [];
 		$generated[] = sprintf('$pageSize = $request->query(\'size\');');
 		foreach ($columns as $k => $v) {
+			if (Str::startsWith($k, 'created') || Str::startsWith($k, 'updated')) {
+				continue;
+			}
 			$generated[] = sprintf('$%s = $request->query(\'%s\');', Str::camel($k), $k);
 		}
 
 		$generated[] = sprintf('$models = %s::orderBy(\'id\',\'desc\')', $className);
 		foreach ($columns as $k => $v) {
+			if (Str::startsWith($k, 'created') || Str::startsWith($k, 'updated')) {
+				continue;
+			}
 			$generated[] = sprintf('->%s($%s)', Str::camel($k), Str::camel($k));
 		}
 		$generated[] = '->paginate($pageSize);';
