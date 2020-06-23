@@ -37,6 +37,7 @@ Do all generation **before you add some codes** to your new model & controller
 ### Basic Usage
 - generate model with `php artisan make:model {ModelName} -mcr` options, make sure your model name is **singular** [PascalCase](http://wiki.c2.com/?PascalCase)
 - run `php artisan reverse:mysql {table-name} -c -r` , table name is usually plural [snake_case](https://en.wikipedia.org/wiki/Snake_case)
+- there is option `--hard-reset` to replace all table related MVC files, use it if needed
 - run `phpfmt` or other php formatter
 - add this resources to routes
 
@@ -55,6 +56,6 @@ pls check [github](https://github.com/toshim45/laravel-reverse-mysql/tree/master
 
 ## Notes
 - Tested on OSX, need help for other OS
-- Tested on laravel 5.6, need help for >5.6 & 6.* (i dont think will support for 4.*)
+- Tested on laravel 5.6 & 5.8, need help for 6.* (i dont think will support for 4.*)
 - For code formatting ~I'm working on formatting generated code, but for now~ you can use your IDE, already tried some code formatter, almost of them install binary in your vendor folder, I thought that is inappropriate, so just use your IDE formatter
 - only support mysql

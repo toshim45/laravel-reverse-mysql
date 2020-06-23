@@ -2,9 +2,9 @@
 
 	<nav class="navbar navbar-inverse">
 		<ul class="nav navbar-nav">
-            <li><a href="{{ URL::to('{{tableName}}/create') }}"><i class="fa fa-plus"></i> Add</a></li>
-			<li><a href="{{ URL::to('{{tableName}}/'.$model->id.'/edit') }}"><i class="fa fa-pencil"></i> Edit</a></li>
-			<li><a href="{{ URL::to('{{tableName}}') }}"><i class="fa fa-list"></i> List</a></li>
+            <li><a href="{{ URL::to('{{tableUrlName}}/create') }}"><i class="fa fa-plus"></i> Add</a></li>
+			<li><a href="{{ URL::to('{{tableUrlName}}/'.$model->id.'/edit') }}"><i class="fa fa-pencil"></i> Edit</a></li>
+			<li><a href="{{ URL::to('{{tableUrlName}}') }}"><i class="fa fa-list"></i> List</a></li>
 		</ul>
 	</nav>
 
@@ -12,7 +12,7 @@
         {{tableContent}}
     </div>
 
-    {{ Form::open(['url' => '{{tableName}}/' . $model->id, 'class' => 'pull-right', 'onsubmit'=>'return confirm("Are you sure?")']) }}
+    {{ Form::open(['url' => '{{tableUrlName}}/' . $model->id, 'class' => 'pull-right', 'onsubmit'=>'return confirm("Are you sure?")']) }}
         {{ Form::hidden('_method', 'DELETE') }}
         {{ Form::submit('Delete', array('class' => 'btn btn-warning')) }}
     {{ Form::close() }}

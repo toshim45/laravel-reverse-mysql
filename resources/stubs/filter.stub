@@ -1,4 +1,4 @@
-{{ Form::open(array('url' => '{{tableName}}','method'=>'GET')) }}
+{{ Form::open(array('url' => '{{tableUrlName}}','method'=>'GET')) }}
 {{tableContent}}
 <div class="form-group">
 	{{ Form::button('<i class="fa fa-search"></i> Search', ['type' => 'submit', 'class' => 'btn btn-primary pull-right'] )  }}
