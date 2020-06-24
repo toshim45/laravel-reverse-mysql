@@ -43,14 +43,19 @@ Do all generation **before you add some codes** to your new model & controller
 
 ### Custom Stub
 - generate model with `php artisan make:model {ModelName} -mcr` options, make sure your model name is **singular** [PascalCase](http://wiki.c2.com/?PascalCase)
-- update content `resources/stubs`, keep both `{{tableName}}`, `{{tableUrlName}}` and `{{tableContent}}` variables, which is used by this generator, var `{{tableFilter}}` will create filter with equal query, you can change query at model class.
+- update content `resources/stubs`, keep `{{tableName}}`, `{{tableUrlName}}` and `{{tableContent}}` variables, which is used by this generator, var `{{tableFilter}}` will create filter with equal query, you can change query at model class.
 - run `php artisan reverse:mysql {table_name} -c -r`, table name is usually plural [snake_case](https://en.wikipedia.org/wiki/Snake_case)
 - run `phpfmt` or other php formatter
 - add this resources to routes
 
+### Reserved variables
+- tableName
+- tableUrlName
+- tableContent
+
 ### Stub Example
 
-pls check [github](https://github.com/toshim45/laravel-reverse-mysql/tree/master/examples) and copy paste folder content from one of these:
+pls check github [examples](https://github.com/toshim45/laravel-reverse-mysql/tree/master/examples) and copy paste folder content from one of these, into resources/stubs folder:
 - [jeroennoten-adminlte](https://github.com/jeroennoten/Laravel-AdminLTE/tree/laravel5-adminlte2) stub, install jeroennoten-adminlte package before generating crud
 
 
