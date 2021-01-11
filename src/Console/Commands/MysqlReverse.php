@@ -170,7 +170,7 @@ class MysqlReverse extends Command {
 		foreach ($columns as $k => $v) {
 			$generated[] = '<div class="form-group">';
 			$generated[] = sprintf('{{ Form::label(\'%s\', \'%s\') }}', $k, Str::title($k));
-			$generated[] = sprintf('{{ Form::text(\'%s\', \'\', array(\'class\' => \'form-control\')) }}', $k);
+			$generated[] = sprintf('{{ Form::text(\'%s\', $filters[\'%s\'], array(\'class\' => \'form-control\')) }}', $k,$k);
 			$generated[] = '</div>';
 		}
 		$content = str_replace('{{tableUrlName}}', $tableUrl, $content);
@@ -211,7 +211,7 @@ class MysqlReverse extends Command {
 		$generated[] = '</tbody>';
 		$generated[] = '</table>';
 
-		$filters = sprintf('@include(\'%s.filter\',[])', $table);
+		$filters = sprintf('@include(\'%s.filter\',[\'filters\'=>$filters])', $table);
 
 		$content = str_replace('{{tableFilter}}', $filters, $content);
 		$content = str_replace('{{tableUrlName}}', $tableUrl, $content);
@@ -360,7 +360,11 @@ class MysqlReverse extends Command {
 			$generated[] = sprintf('->%s($%s)', Str::camel($k), Str::camel($k));
 		}
 		$generated[] = '->paginate($pageSize);';
-		$generated[] = sprintf('return view(\'%s.index\',[\'models\'=>$models]);', $table);
+		$generated[] = sprintf('return view(\'%s.index\',[\'models\'=>$models,\'filters\'=>[', $table);
+		foreach ($columns as $k => $v) {
+			$generated[] = sprintf('\'%s\'=>$%s,', $k, Str::camel($k));
+		}
+		$generated[] = ']]);';
 
 		return str_replace('//', implode("\r\n", $generated), self::CTRL_FUNC_INDEX);
 	}
