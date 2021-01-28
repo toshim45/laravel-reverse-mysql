@@ -12,7 +12,7 @@ class MysqlReverse extends Command {
 	 *
 	 * @var string
 	 */
-	protected $signature = 'reverse:mysql {table} {--c|controller} {--r|resource} {--s|stub} {--hard-reset}';
+	protected $signature = 'reverse:mysql {table} {--c|controller} {--r|resource} {--s|stub} {--hard-reset} {--csv}';
 
 	/**
 	 * The console command description.
@@ -39,6 +39,7 @@ class MysqlReverse extends Command {
 		$table          = $this->argument('table');
 		$controller     = $this->option('controller');
 		$resource       = $this->option('resource');
+		$csv            = $this->option('csv');
 		$hardReset      = $this->option('hard-reset');
 		$rawTableStruct = DB::select(DB::raw("SHOW COLUMNS FROM `" . $table . "`"));
 		$tableStruct    = $this->parseTableStruct($rawTableStruct);
@@ -72,6 +73,12 @@ class MysqlReverse extends Command {
 		}
 		if ($resource) {
 			$this->applyResource($table, $tableStruct);
+		}
+
+		if ($csv) {
+			$this->applyCsvController($table, $tableStruct, $className);
+			printf("Please add these line to your routes before \e[1;34;42m%s\e[0m resources:\r\n", $tableUrl);
+			printf("\e[1;34;43mRoute::get('%s/csv', '%sController@csv');\e[0m\r\n", $tableUrl, $className);
 		}
 	}
 
@@ -170,7 +177,7 @@ class MysqlReverse extends Command {
 		foreach ($columns as $k => $v) {
 			$generated[] = '<div class="form-group">';
 			$generated[] = sprintf('{{ Form::label(\'%s\', \'%s\') }}', $k, Str::title($k));
-			$generated[] = sprintf('{{ Form::text(\'%s\', $filters[\'%s\'], array(\'class\' => \'form-control\')) }}', $k,$k);
+			$generated[] = sprintf('{{ Form::text(\'%s\', $filters[\'%s\'], array(\'class\' => \'form-control\')) }}', $k, $k);
 			$generated[] = '</div>';
 		}
 		$content = str_replace('{{tableUrlName}}', $tableUrl, $content);
@@ -246,10 +253,15 @@ class MysqlReverse extends Command {
 		file_put_contents($fileModel, $content);
 	}
 
+	private function getFileController($className) {
+		//TODO: windows OS
+		return app_path() . '/Http/Controllers/' . $className . 'Controller.php';
+	}
+
 	public function applyController($table, $columns, $className) {
 		$modelName = Str::camel(Str::singular($table));
-		//TODO: windows OS
-		$fileController = app_path() . '/Http/Controllers/' . $className . 'Controller.php';
+		
+		$fileController = $this->getFileController($className);
 
 		//editting
 		$content = file_get_contents($fileController);
@@ -369,6 +381,49 @@ class MysqlReverse extends Command {
 		return str_replace('//', implode("\r\n", $generated), self::CTRL_FUNC_INDEX);
 	}
 
+	public function applyCsvController($table, $columns, $className){
+		$fileController = $this->getFileController($className);
+		$content = file_get_contents($fileController);
+		$generated = [];
+		$generated[]= '}';
+		$generated[]= '';
+		$generated[]= '/** Stream Download CSV **/';
+		$generated[] = sprintf('public function csv(){');
+		$quotedColumns = '\''.implode('\',\'',array_keys($columns)).'\'';
+		$generated[] = sprintf('$csvHeaders=[\'no.\',%s];',$quotedColumns);
+		$generated[] = '$url     = url()->previous();
+		$queries = [];
+		parse_str(parse_url($url, PHP_URL_QUERY), $queries);';
+		$generated[]= sprintf('$fileName =  \'%s.date(\'YmdHi\') . \'.csv\';',$table.'-csv-\'');
+		$generated[]='$headers  = [
+			\'Cache-Control\' => \'must-revalidate, post-check=0, pre-check=0\'
+			, \'Content-type\' => \'text/csv\'
+			, \'Content-Disposition\' => \'attachment; filename=\' . $fileName
+			, \'Expires\' => \'0\'
+			, \'Pragma\' => \'public\',
+		];';
+		
+		$generated[] = sprintf('$reports = %s::select(%s);',$className,$quotedColumns);
+		$generated[] = '$callback = function () use ($reports,$csvHeaders) {
+			$handle = fopen(\'php://output\', \'w\');';
+		$generated[] = 'fputcsv($handle, $csvHeaders);
+			$i = 1;
+			$reports->chunk(200, function ($chunkReport) use ($handle, $i) {
+				foreach ($chunkReport as $report) {';
+		$generated[] = '$csv = [ $i,$report->'.implode(',$report->',array_keys($columns)).'];';
+		$generated[]='fputcsv($handle, $csv);
+					$i++;
+				}
+			});
+			fclose($handle);
+		};
+
+		return response()->stream($callback, 200, $headers);';
+		$generated[] = self::CTRL_END_CLASS;
+		$content = str_replace(self::CTRL_END_CLASS_RAW,implode("\r\n", $generated),$content);
+		file_put_contents($fileController, $content);
+	}
+
 	public function applyNamedClassTemplate($template, $className) {
 		return sprintf($template, $className);
 	}
@@ -452,4 +507,12 @@ class MysqlReverse extends Command {
     {
     	//
     }';
+
+
+    const CTRL_END_CLASS_RAW = 
+    '}
+}';
+	const CTRL_END_CLASS =
+'    }
+}';
 }
