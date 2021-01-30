@@ -77,7 +77,8 @@ class MysqlReverse extends Command {
 
 		if ($csv) {
 			$this->applyCsvController($table, $tableStruct, $className);
-			printf("Please add these line to your routes before \e[1;34;42m%s\e[0m resources:\r\n", $tableUrl);
+			$this->applyCsvResource($table, $tableStruct, $className);
+			printf("Please add these line to your routes before \e[93m%s\e[0m resources route:\r\n", $tableUrl);
 			printf("\e[1;34;43mRoute::get('%s/csv', '%sController@csv');\e[0m\r\n", $tableUrl, $className);
 		}
 	}
@@ -403,14 +404,23 @@ class MysqlReverse extends Command {
 			, \'Pragma\' => \'public\',
 		];';
 		
-		$generated[] = sprintf('$reports = %s::select(%s);',$className,$quotedColumns);
+		$generated[] = sprintf('$reports = %s::select(%s)',$className,$quotedColumns);
+		$lastColumnKey = array_key_last($columns);
+		foreach ($columns as $k => $v) {
+			$columnSeparator = ($k == $lastColumnKey) ? ';':'';
+			$generated[] = sprintf('->%s($queries[\'%s\'])%s', Str::camel($k), $k,$columnSeparator);
+		}
 		$generated[] = '$callback = function () use ($reports,$csvHeaders) {
 			$handle = fopen(\'php://output\', \'w\');';
 		$generated[] = 'fputcsv($handle, $csvHeaders);
 			$i = 1;
 			$reports->chunk(200, function ($chunkReport) use ($handle, $i) {
 				foreach ($chunkReport as $report) {';
-		$generated[] = '$csv = [ $i,$report->'.implode(',$report->',array_keys($columns)).'];';
+		$generated[] = '$csv = [ $i,';
+		foreach ($columns as $k => $v) {
+			$generated[] = sprintf('$report->%s,', $k);
+		}
+		$generated[]='];';
 		$generated[]='fputcsv($handle, $csv);
 					$i++;
 				}
@@ -422,6 +432,21 @@ class MysqlReverse extends Command {
 		$generated[] = self::CTRL_END_CLASS;
 		$content = str_replace(self::CTRL_END_CLASS_RAW,implode("\r\n", $generated),$content);
 		file_put_contents($fileController, $content);
+	}
+
+	public function applyCsvResource($table, $columns) {
+		$content = file_get_contents(resource_path() . '/stubs/csv.stub');
+		if (!$content) {
+			throw new Exception("Error: csv stub", 1);
+		}
+
+		$tableUrl = str_replace("_", "-", $table);
+
+		$content = str_replace('{{tableUrlName}}', $tableUrl, $content);
+
+		printf("Please add these block to your index.blade \e[93m@stop\e[0m resources:\r\n");
+		printf("\e[1;34;43m%s\e[0m\r\n", $content);	
+		printf("\r\n");	
 	}
 
 	public function applyNamedClassTemplate($template, $className) {

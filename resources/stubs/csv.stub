@@ -1,0 +1,1 @@
+<a href="{{ URL::to('{{tableUrlName}}/csv')}}" class="btn btn-primary pull-right">UNDUH</a>
