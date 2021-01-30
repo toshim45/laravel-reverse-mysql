@@ -443,8 +443,8 @@ class MysqlReverse extends Command {
 		$tableUrl = str_replace("_", "-", $table);
 
 		$content = str_replace('{{tableUrlName}}', $tableUrl, $content);
-
-		printf("Please add these block to your index.blade \e[93m@stop\e[0m resources:\r\n");
+		
+		printf("Please add these block to your \e[93mindex.blade\e[0m resources:\r\n");
 		printf("\e[1;34;43m%s\e[0m\r\n", $content);	
 		printf("\r\n");	
 	}
