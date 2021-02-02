@@ -395,7 +395,7 @@ class MysqlReverse extends Command {
 		$generated[] = '$url     = url()->previous();
 		$queries = [];
 		parse_str(parse_url($url, PHP_URL_QUERY), $queries);';
-		$generated[]= sprintf('$fileName =  \'%s.date(\'YmdHi\') . \'.csv\';',$table.'-csv-\'');
+		$generated[]= sprintf('$fileName =  \'%s.date(\'YmdHi\') . \'.csv\';',$table.'-\'');
 		$generated[]='$headers  = [
 			\'Cache-Control\' => \'must-revalidate, post-check=0, pre-check=0\'
 			, \'Content-type\' => \'text/csv\'
@@ -408,7 +408,7 @@ class MysqlReverse extends Command {
 		$lastColumnKey = array_key_last($columns);
 		foreach ($columns as $k => $v) {
 			$columnSeparator = ($k == $lastColumnKey) ? ';':'';
-			$generated[] = sprintf('->%s($queries[\'%s\'])%s', Str::camel($k), $k,$columnSeparator);
+			$generated[] = sprintf('->%s(array_key_exists(\'%s\', $queries)?$queries[\'%s\']:\'\')%s', Str::camel($k), $k, $k, $columnSeparator);
 		}
 		$generated[] = '$callback = function () use ($reports,$csvHeaders) {
 			$handle = fopen(\'php://output\', \'w\');';
