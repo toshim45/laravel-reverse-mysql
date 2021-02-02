@@ -22,5 +22,5 @@
 	{{tableContent}}
 </div>
 
-{{ $models->links() }}
+{{ $models->appends(request()->input())->links() }}
 @stop
