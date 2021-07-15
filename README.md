@@ -13,7 +13,7 @@ laravel package, basically reverse field from mysql into controller + views, jus
 - if you do not have concern on provided themes
 
 ## Requirements
-- Laravel 5.* 
+- Laravel 5.* or 6.*
 - [Laravel Collective](https://laravelcollective.com)
 - Your table must contains id & timestamp
 
@@ -61,6 +61,6 @@ pls check github [examples](https://github.com/toshim45/laravel-reverse-mysql/tr
 
 ## Notes
 - Tested on OSX, need help for other OS
-- Tested on laravel 5.6 & 5.8, need help for 6.* (i dont think will support for 4.*)
+- Tested on laravel 5.6, 5.8, 6.* need help for 7 & 8 (i dont think will support for 4.*)
 - For code formatting ~I'm working on formatting generated code, but for now~ you can use your IDE, already tried some code formatter, almost of them install binary in your vendor folder, I thought that is inappropriate, so just use your IDE formatter
 - only support mysql
