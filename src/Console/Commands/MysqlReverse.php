@@ -192,6 +192,9 @@ class MysqlReverse extends Command {
 
 		$generated = [];
 		foreach ($columns as $k => $v) {
+			if (Str::startsWith($k, 'created') || Str::startsWith($k, 'updated')) {
+				continue;
+			}
 			$generated[] = '<div class="form-group">';
 			$generated[] = sprintf('{{ Form::label(\'%s\', \'%s\') }}', $k, Str::title($k));
 			$generated[] = sprintf('{{ Form::text(\'%s\', $filters[\'%s\'], array(\'class\' => \'form-control\')) }}', $k, $k);
@@ -402,6 +405,9 @@ class MysqlReverse extends Command {
 		$generated[] = '->paginate($pageSize);';
 		$generated[] = sprintf('return view(\'%s.index\',[\'models\'=>$models,\'filters\'=>[', $table);
 		foreach ($columns as $k => $v) {
+			if (Str::startsWith($k, 'created') || Str::startsWith($k, 'updated')) {
+				continue;
+			}
 			$generated[] = sprintf('\'%s\'=>$%s,', $k, Str::camel($k));
 		}
 		$generated[] = ']]);';
