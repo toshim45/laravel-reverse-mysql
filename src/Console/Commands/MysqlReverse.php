@@ -12,7 +12,7 @@ class MysqlReverse extends Command {
 	 *
 	 * @var string
 	 */
-	protected $signature = 'reverse:mysql {table} {--c|controller} {--r|resource} {--s|stub} {--hard-reset} {--csv}';
+	protected $signature = 'reverse:mysql {table} {--c|controller} {--r|resource} {--s|stub} {--hard-reset} {--revert} {--csv}';
 
 	/**
 	 * The console command description.
@@ -30,6 +30,11 @@ class MysqlReverse extends Command {
 		parent::__construct();
 	}
 
+	private function checkVersion() {
+		return explode('.', \Illuminate\Foundation\Application::VERSION)[0];
+	}
+
+	const EOL = "\r\n";
 	/**
 	 * Execute the console command.
 	 *
@@ -41,13 +46,16 @@ class MysqlReverse extends Command {
 		$resource       = $this->option('resource');
 		$csv            = $this->option('csv');
 		$hardReset      = $this->option('hard-reset');
+		$revert         = $this->option('revert');
 		$rawTableStruct = DB::select(DB::raw("SHOW COLUMNS FROM `" . $table . "`"));
 		$tableStruct    = $this->parseTableStruct($rawTableStruct);
 		$tableUrl       = str_replace("_", "-", $table);
 		$className      = Str::studly(Str::singular($table));
+		$version        = $this->checkVersion();
 
-		if ($hardReset) {
-			if ($this->confirm('Option hard-reset will remove existing [' . $table . '] MVC files, continue?')) {
+		if ($hardReset || $revert) {
+			$cmd = $revert ? 'revert' : 'hard-reset';
+			if ($this->confirm('Option ' . $cmd . ' will remove existing [' . $table . '] MVC files, continue?')) {
 				@unlink(app_path() . '/Http/Controllers/' . $className . 'Controller.php');
 				@unlink(resource_path() . '/views/' . $table . '/index.blade.php');
 				@unlink(resource_path() . '/views/' . $table . '/filter.blade.php');
@@ -60,16 +68,24 @@ class MysqlReverse extends Command {
 					'--controller' => true,
 					'--resource'   => true,
 				]);
+
+				if ($revert) {
+					return;
+				}
 			} else {
 				return;
 			}
 		}
 
 		if ($controller) {
-			$this->applyModel($table, $tableStruct, $className);
+			$this->applyModel($table, $tableStruct, $className, $version);
 			$this->applyController($table, $tableStruct, $className);
-			printf("Please add these line to your routes:\r\n");
-			printf("\e[1;34;43mRoute::resource('%s', '%sController');\e[0m\r\n", $tableUrl, $className);
+			$controllerClass = "'" . $className . "Controller'";
+			if ($version == 8) {
+				$controllerClass = $className . 'Controller::class';
+			}
+			printf("Please add these line to your routes:" . self::EOL);
+			printf("\e[1;34;43mRoute::resource('%s', %s);\e[0m" . self::EOL, $tableUrl, $controllerClass);
 		}
 		if ($resource) {
 			$this->applyResource($table, $tableStruct);
@@ -78,8 +94,8 @@ class MysqlReverse extends Command {
 		if ($csv) {
 			$this->applyCsvController($table, $tableStruct, $className);
 			$this->applyCsvResource($table, $tableStruct, $className);
-			printf("Please add these line to your routes before \e[93m%s\e[0m resources route:\r\n", $tableUrl);
-			printf("\e[1;34;43mRoute::get('%s/csv', '%sController@csv');\e[0m\r\n", $tableUrl, $className);
+			printf("Please add these line to your routes before \e[93m%s\e[0m resources route:" . self::EOL, $tableUrl);
+			printf("\e[1;34;43mRoute::get('%s/csv', '%sController@csv');\e[0m" . self::EOL, $tableUrl, $className);
 		}
 	}
 
@@ -114,7 +130,7 @@ class MysqlReverse extends Command {
 
 		$content = str_replace('{{tableUrlName}}', $tableUrl, $content);
 		$content = str_replace('{{tableName}}', $table, $content);
-		$content = str_replace('{{tableContent}}', implode("\r\n", $generated), $content);
+		$content = str_replace('{{tableContent}}', implode("" . self::EOL, $generated), $content);
 
 		file_put_contents(resource_path() . '/views/' . $table . '/edit.blade.php', $content);
 	}
@@ -137,7 +153,7 @@ class MysqlReverse extends Command {
 
 		$content = str_replace('{{tableUrlName}}', $tableUrl, $content);
 		$content = str_replace('{{tableName}}', $table, $content);
-		$content = str_replace('{{tableContent}}', implode("\r\n", $generated), $content);
+		$content = str_replace('{{tableContent}}', implode("" . self::EOL, $generated), $content);
 		file_put_contents(resource_path() . '/views/' . $table . '/show.blade.php', $content);
 	}
 
@@ -161,7 +177,7 @@ class MysqlReverse extends Command {
 
 		$content = str_replace('{{tableUrlName}}', $tableUrl, $content);
 		$content = str_replace('{{tableName}}', $table, $content);
-		$content = str_replace('{{tableContent}}', implode("\r\n", $generated), $content);
+		$content = str_replace('{{tableContent}}', implode("" . self::EOL, $generated), $content);
 
 		file_put_contents(resource_path() . '/views/' . $table . '/create.blade.php', $content);
 	}
@@ -176,6 +192,9 @@ class MysqlReverse extends Command {
 
 		$generated = [];
 		foreach ($columns as $k => $v) {
+			if (Str::startsWith($k, 'created') || Str::startsWith($k, 'updated')) {
+				continue;
+			}
 			$generated[] = '<div class="form-group">';
 			$generated[] = sprintf('{{ Form::label(\'%s\', \'%s\') }}', $k, Str::title($k));
 			$generated[] = sprintf('{{ Form::text(\'%s\', $filters[\'%s\'], array(\'class\' => \'form-control\')) }}', $k, $k);
@@ -183,7 +202,7 @@ class MysqlReverse extends Command {
 		}
 		$content = str_replace('{{tableUrlName}}', $tableUrl, $content);
 		$content = str_replace('{{tableName}}', $table, $content);
-		$content = str_replace('{{tableContent}}', implode("\r\n", $generated), $content);
+		$content = str_replace('{{tableContent}}', implode("" . self::EOL, $generated), $content);
 
 		file_put_contents(resource_path() . '/views/' . $table . '/filter.blade.php', $content);
 	}
@@ -224,21 +243,31 @@ class MysqlReverse extends Command {
 		$content = str_replace('{{tableFilter}}', $filters, $content);
 		$content = str_replace('{{tableUrlName}}', $tableUrl, $content);
 		$content = str_replace('{{tableName}}', $table, $content);
-		$content = str_replace('{{tableContent}}', implode("\r\n", $generated), $content);
+		$content = str_replace('{{tableContent}}', implode("" . self::EOL, $generated), $content);
 
 		file_put_contents(resource_path() . '/views/' . $table . '/index.blade.php', $content);
 	}
 
-	public function applyModel($table, $columns, $className) {
-		$modelName = Str::camel(Str::singular($table));
+	public function applyModel($table, $columns, $className, $version) {
+		$modelName                = Str::camel(Str::singular($table));
+		$modelPath                = app_path();
+		$defaultTemplateToReplace = '//';
+		$generated                = [];
+		$modelClassTemplate       = self::MDL_CLASS;
 
-		$fileModel = app_path() . '/' . $className . '.php';
-		$content   = file_get_contents($fileModel);
-		if (!$content) {
-			throw new Exception("Error: controller " . $fileModel, 1);
+		if ($version == 8) {
+			$modelPath                = app_path() . '/Models';
+			$defaultTemplateToReplace = 'use HasFactory;';
+			$generated[]              = $defaultTemplateToReplace;
+			$modelClassTemplate       = self::MDL8_CLASS;
 		}
 
-		$generated = [];
+		$fileModel = $modelPath . '/' . $className . '.php';
+		$content   = file_get_contents($fileModel);
+		if (!$content) {
+			throw new Exception("Error: model " . $fileModel, 1);
+		}
+
 		foreach ($columns as $k => $v) {
 			$variableName = Str::camel($k);
 			$generated[]  = sprintf('public function scope%s($query,$%s){', Str::studly($k), $variableName);
@@ -247,9 +276,10 @@ class MysqlReverse extends Command {
 			$generated[]  = '}';
 		}
 
-		$namedTemplate = $this->applyNamedClassTemplate(self::MDL_CLASS, $className);
-		$scopes        = str_replace('//', implode("\r\n", $generated), $namedTemplate);
-		$content       = str_replace($namedTemplate, $scopes, $content);
+		$namedTemplate = $this->applyNamedClassTemplate($modelClassTemplate, $className);
+
+		$scopes  = str_replace($defaultTemplateToReplace, implode("" . self::EOL, $generated), $namedTemplate);
+		$content = str_replace($namedTemplate, $scopes, $content);
 
 		file_put_contents($fileModel, $content);
 	}
@@ -261,7 +291,7 @@ class MysqlReverse extends Command {
 
 	public function applyController($table, $columns, $className) {
 		$modelName = Str::camel(Str::singular($table));
-		
+
 		$fileController = $this->getFileController($className);
 
 		//editting
@@ -309,12 +339,12 @@ class MysqlReverse extends Command {
 		}
 		$generated[] = sprintf('$%s->save();', $modelName);
 		$generated[] = sprintf('return redirect(\'%s\')->with(\'status\', \'updated\');', $tableUrl);
-		return str_replace('//', implode("\r\n", $generated), $template);
+		return str_replace('//', implode("" . self::EOL, $generated), $template);
 	}
 	public function applyEditController($template, $table, $className, $modelName, $columns) {
 		$generated   = [];
 		$generated[] = sprintf('return view(\'%s.edit\',[\'model\'=>$%s]);', $table, $modelName);
-		return str_replace('//', implode("\r\n", $generated), $template);
+		return str_replace('//', implode("" . self::EOL, $generated), $template);
 	}
 
 	public function applyDestroyController($template, $table, $className, $modelName, $columns) {
@@ -322,14 +352,14 @@ class MysqlReverse extends Command {
 		$generated   = [];
 		$generated[] = sprintf('$%s->delete();', $modelName);
 		$generated[] = sprintf('return redirect(\'%s\')->with(\'status\', \'deleted\');', $tableUrl);
-		return str_replace('//', implode("\r\n", $generated), $template);
+		return str_replace('//', implode("" . self::EOL, $generated), $template);
 	}
 
 	public function applyShowController($template, $table, $className, $modelName, $columns) {
 		$generated   = [];
 		$generated[] = sprintf('return view(\'%s.show\',[\'model\'=>$%s]);', $table, $modelName);
 
-		return str_replace('//', implode("\r\n", $generated), $template);
+		return str_replace('//', implode("" . self::EOL, $generated), $template);
 	}
 
 	public function applyStoreController($table, $className, $columns) {
@@ -345,14 +375,14 @@ class MysqlReverse extends Command {
 		$generated[] = '$model->save();';
 		$generated[] = sprintf('return redirect(\'%s\')->with(\'status\', \'recorded\');', $tableUrl);
 
-		return str_replace('//', implode("\r\n", $generated), self::CTRL_FUNC_STORE);
+		return str_replace('//', implode("" . self::EOL, $generated), self::CTRL_FUNC_STORE);
 	}
 
 	public function applyCreateController($table, $className, $columns) {
 		$generated   = [];
 		$generated[] = sprintf('$model = new %s;', $className);
 		$generated[] = sprintf('return view(\'%s.create\',[\'model\'=>$model]);', $table);
-		return str_replace('//', implode("\r\n", $generated), self::CTRL_FUNC_CREATE);
+		return str_replace('//', implode("" . self::EOL, $generated), self::CTRL_FUNC_CREATE);
 	}
 
 	public function applyIndexController($table, $className, $columns) {
@@ -375,40 +405,43 @@ class MysqlReverse extends Command {
 		$generated[] = '->paginate($pageSize);';
 		$generated[] = sprintf('return view(\'%s.index\',[\'models\'=>$models,\'filters\'=>[', $table);
 		foreach ($columns as $k => $v) {
+			if (Str::startsWith($k, 'created') || Str::startsWith($k, 'updated')) {
+				continue;
+			}
 			$generated[] = sprintf('\'%s\'=>$%s,', $k, Str::camel($k));
 		}
 		$generated[] = ']]);';
 
-		return str_replace('//', implode("\r\n", $generated), self::CTRL_FUNC_INDEX);
+		return str_replace('//', implode("" . self::EOL, $generated), self::CTRL_FUNC_INDEX);
 	}
 
-	public function applyCsvController($table, $columns, $className){
+	public function applyCsvController($table, $columns, $className) {
 		$fileController = $this->getFileController($className);
-		$content = file_get_contents($fileController);
-		$generated = [];
-		$generated[]= '}';
-		$generated[]= '';
-		$generated[]= '/** Stream Download CSV **/';
-		$generated[] = sprintf('public function csv(){');
-		$quotedColumns = '\''.implode('\',\'',array_keys($columns)).'\'';
-		$generated[] = sprintf('$csvHeaders=[\'no.\',%s];',$quotedColumns);
-		$generated[] = '$url     = url()->previous();
+		$content        = file_get_contents($fileController);
+		$generated      = [];
+		$generated[]    = '}';
+		$generated[]    = '';
+		$generated[]    = '/** Stream Download CSV **/';
+		$generated[]    = sprintf('public function csv(){');
+		$quotedColumns  = '\'' . implode('\',\'', array_keys($columns)) . '\'';
+		$generated[]    = sprintf('$csvHeaders=[\'no.\',%s];', $quotedColumns);
+		$generated[]    = '$url     = url()->previous();
 		$queries = [];
 		parse_str(parse_url($url, PHP_URL_QUERY), $queries);';
-		$generated[]= sprintf('$fileName =  \'%s.date(\'YmdHi\') . \'.csv\';',$table.'-\'');
-		$generated[]='$headers  = [
+		$generated[] = sprintf('$fileName =  \'%s.date(\'YmdHi\') . \'.csv\';', $table . '-\'');
+		$generated[] = '$headers  = [
 			\'Cache-Control\' => \'must-revalidate, post-check=0, pre-check=0\'
 			, \'Content-type\' => \'text/csv\'
 			, \'Content-Disposition\' => \'attachment; filename=\' . $fileName
 			, \'Expires\' => \'0\'
 			, \'Pragma\' => \'public\',
 		];';
-		
-		$generated[] = sprintf('$reports = %s::select(%s)',$className,$quotedColumns);
+
+		$generated[]   = sprintf('$reports = %s::select(%s)', $className, $quotedColumns);
 		$lastColumnKey = array_key_last($columns);
 		foreach ($columns as $k => $v) {
-			$columnSeparator = ($k == $lastColumnKey) ? ';':'';
-			$generated[] = sprintf('->%s(array_key_exists(\'%s\', $queries)?$queries[\'%s\']:\'\')%s', Str::camel($k), $k, $k, $columnSeparator);
+			$columnSeparator = ($k == $lastColumnKey) ? ';' : '';
+			$generated[]     = sprintf('->%s(array_key_exists(\'%s\', $queries)?$queries[\'%s\']:\'\')%s', Str::camel($k), $k, $k, $columnSeparator);
 		}
 		$generated[] = '$callback = function () use ($reports,$csvHeaders) {
 			$handle = fopen(\'php://output\', \'w\');';
@@ -420,8 +453,8 @@ class MysqlReverse extends Command {
 		foreach ($columns as $k => $v) {
 			$generated[] = sprintf('$report->%s,', $k);
 		}
-		$generated[]='];';
-		$generated[]='fputcsv($handle, $csv);
+		$generated[] = '];';
+		$generated[] = 'fputcsv($handle, $csv);
 					$i++;
 				}
 			});
@@ -430,7 +463,7 @@ class MysqlReverse extends Command {
 
 		return response()->stream($callback, 200, $headers);';
 		$generated[] = self::CTRL_END_CLASS;
-		$content = str_replace(self::CTRL_END_CLASS_RAW,implode("\r\n", $generated),$content);
+		$content     = str_replace(self::CTRL_END_CLASS_RAW, implode("" . self::EOL, $generated), $content);
 		file_put_contents($fileController, $content);
 	}
 
@@ -443,10 +476,10 @@ class MysqlReverse extends Command {
 		$tableUrl = str_replace("_", "-", $table);
 
 		$content = str_replace('{{tableUrlName}}', $tableUrl, $content);
-		
-		printf("Please add these block to your \e[93mindex.blade\e[0m resources:\r\n");
-		printf("\e[1;34;43m%s\e[0m\r\n", $content);	
-		printf("\r\n");	
+
+		printf("Please add these block to your \e[93mindex.blade\e[0m resources:" . self::EOL);
+		printf("\e[1;34;43m%s\e[0m" . self::EOL, $content);
+		printf("" . self::EOL);
 	}
 
 	public function applyNamedClassTemplate($template, $className) {
@@ -473,6 +506,11 @@ class MysqlReverse extends Command {
 		'class %s extends Model
 {
     //
+}';
+	const MDL8_CLASS =
+		'class %s extends Model
+{
+    use HasFactory;
 }';
 
 	const CTRL_FUNC_UPDATE =
@@ -533,11 +571,10 @@ class MysqlReverse extends Command {
     	//
     }';
 
-
-    const CTRL_END_CLASS_RAW = 
-    '}
+	const CTRL_END_CLASS_RAW =
+		'}
 }';
 	const CTRL_END_CLASS =
-'    }
+		'    }
 }';
 }
