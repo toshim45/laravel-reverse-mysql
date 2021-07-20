@@ -147,6 +147,9 @@ class MysqlReverse extends Command {
 		$generated[] = '<h2>{{$model->id}}</h2>';
 		$generated[] = '<p>';
 		foreach ($columns as $k => $v) {
+			if (Str::startsWith($k, 'created') || Str::startsWith($k, 'updated')) {
+				continue;
+			}
 			$generated[] = sprintf('<strong>%s</strong> : {{$model->%s}}</br>', Str::title(str_replace('_', ' ', $k)), $k);
 		}
 		$generated[] = '</p>';
@@ -196,7 +199,7 @@ class MysqlReverse extends Command {
 				continue;
 			}
 			$generated[] = '<div class="form-group">';
-			$generated[] = sprintf('{{ Form::label(\'%s\', \'%s\') }}', $k, Str::title($k));
+			$generated[] = sprintf('{{ Form::label(\'%s\', \'%s\') }}', $k, str_replace("_", " ", Str::title($k)));
 			$generated[] = sprintf('{{ Form::text(\'%s\', $filters[\'%s\'], array(\'class\' => \'form-control\')) }}', $k, $k);
 			$generated[] = '</div>';
 		}
@@ -222,6 +225,9 @@ class MysqlReverse extends Command {
 		$generated[] = '<thead>';
 		$generated[] = '<th>No</th>';
 		foreach ($columns as $k => $v) {
+			if (Str::startsWith($k, 'created') || Str::startsWith($k, 'updated')) {
+				continue;
+			}
 			$generated[] = sprintf('<th>%s</th>', str_replace("_", " ", Str::title($k)));
 		}
 		$generated[] = '</thead>';
@@ -230,6 +236,9 @@ class MysqlReverse extends Command {
 		$generated[] = '<tr>';
 		$generated[] = '<td>{{ $loop->iteration + (10 * ($models->currentPage()-1)) }}</td>';
 		foreach ($columns as $k => $v) {
+			if (Str::startsWith($k, 'created') || Str::startsWith($k, 'updated')) {
+				continue;
+			}
 			$generated[] = sprintf('<td>{{$model->%s}}</td>', $k);
 		}
 		$generated[] = sprintf('<td><a href="{{ URL::to(\'%s/\'.$model->id) }}"><i class="fa fa-search"></i>view</a>&nbsp;</td>', $tableUrl);
@@ -243,6 +252,7 @@ class MysqlReverse extends Command {
 		$content = str_replace('{{tableFilter}}', $filters, $content);
 		$content = str_replace('{{tableUrlName}}', $tableUrl, $content);
 		$content = str_replace('{{tableName}}', $table, $content);
+		$content = str_replace('{{tableTitle}}', str_replace("_", " ", Str::title($table)), $content);
 		$content = str_replace('{{tableContent}}', implode("" . self::EOL, $generated), $content);
 
 		file_put_contents(resource_path() . '/views/' . $table . '/index.blade.php', $content);
