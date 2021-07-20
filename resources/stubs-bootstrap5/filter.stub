@@ -1,0 +1,14 @@
+<div class="box box-primary" >
+{{ Form::open(array('url' => '{{tableUrlName}}','method'=>'GET')) }}
+<div class="box-body">
+<div class="row">
+{{tableContent}}
+</div>
+</div>
+<div class="box-footer">
+<div class="form-group">
+	{{ Form::button('<i class="fa fa-search"></i> Search', ['type' => 'submit', 'class' => 'btn btn-primary pull-right'] )  }}
+</div>
+</div>
+{{ Form::close() }}
+</div>

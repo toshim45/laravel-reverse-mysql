@@ -26,7 +26,7 @@ composer require toshim45/laravel-reverse-mysql
 then publish the `stubs`
 
 ```
-php artisan vendor:publish --provider="Toshim45\LaravelReverseMysql\ServiceProvider" --tag=stubs
+php artisan vendor:publish --provider="Toshim45\LaravelReverseMysql\ServiceProvider" --tag=stubs-bootstrap5
 ```
 
 your `stubs` will be placed in `resources` folder, edit as you need, simple `stubs` provided for you, for more see [example](#stub-example) stubs below.
@@ -54,6 +54,7 @@ Do all generation **before you add some codes** to your new model & controller
 - tableName
 - tableUrlName
 - tableContent
+- tableTitle
 
 ### Stub Example
 

@@ -1,0 +1,19 @@
+@extends('layout')
+@section('content')
+<h1>{{tableTitle}}</h1>
+@if (session('status'))
+<div class="alert alert-success">
+	{{ session('status') }}
+</div>
+@endif
+
+<nav class="navbar navbar-inverse">
+	<ul class="nav navbar-nav">
+		<li><a href="{{ URL::to('{{tableUrlName}}/create') }}"><i class="fa fa-plus"></i> Add</a></li>
+	</ul>
+</nav>
+{{tableFilter}}
+{{tableContent}}
+
+{{ $models->links() }}
+@stop

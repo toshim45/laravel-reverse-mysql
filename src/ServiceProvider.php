@@ -16,6 +16,11 @@ class ServiceProvider extends BaseServiceProvider {
 		$this->publishes([
 			$stubPath => resource_path('stubs'),
 		], 'stubs');
+		$stubBootstrap5Path = __DIR__. '/../resources/stubs-bootstrap5';
+		$this->publishes([
+			$stubBootstrap5Path => resource_path('stubs');
+			$stubBootstrap5Path.'/layout.blade.php' => resource_path('views');
+		], 'stubs-bootstrap5');
 	}
 }
 

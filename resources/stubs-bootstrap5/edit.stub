@@ -1,0 +1,25 @@
+@extends('layout')
+@section('content')
+<nav class="navbar navbar-inverse">
+	<ul class="nav navbar-nav">
+		<li><a href="{{ URL::to('{{tableUrlName}}') }}"><i class="fa fa-list"></i> List</a></li>
+	</ul>
+</nav>
+
+<!-- if there are creation errors, they will show here -->
+{{ Html::ul($errors->all()) }}
+
+<div class="box box-primary" >
+	<div class="box-body">
+	{{ Form::open(['url' => ['{{tableUrlName}}', $model->id], 'method' => 'PUT']) }}
+
+	{{tableContent}}
+
+	</div>
+
+	<div class="box-footer">
+	{{ Form::submit('Update', array('class' => 'btn btn-primary')) }}
+	</div>
+	{{ Form::close() }}
+</div>
+@stop
