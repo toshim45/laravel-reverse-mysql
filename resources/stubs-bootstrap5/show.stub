@@ -1,10 +1,11 @@
 @extends('layout')
 @section('content')
-<nav class="navbar navbar-inverse">
-	<ul class="nav navbar-nav">
-        <li><a href="{{ URL::to('{{tableUrlName}}/create') }}"><i class="fa fa-plus"></i> Add</a></li>
-		<li><a href="{{ URL::to('{{tableUrlName}}/'.$model->id.'/edit') }}"><i class="fa fa-pencil"></i> Edit</a></li>
-		<li><a href="{{ URL::to('{{tableUrlName}}') }}"><i class="fa fa-list"></i> List</a></li>
+<h1>{{tableTitle}}</h1>
+<nav>
+	<ul class="nav">
+        <li class="nav-item"><a class="nav-link" href="{{ URL::to('{{tableUrlName}}/create') }}"><i class="fa fa-plus"></i> Add</a></li>
+		<li class="nav-item"><a class="nav-link" href="{{ URL::to('{{tableUrlName}}/'.$model->id.'/edit') }}"><i class="fa fa-pencil"></i> Edit</a></li>
+		<li class="nav-item"><a class="nav-link" href="{{ URL::to('{{tableUrlName}}') }}"><i class="fa fa-list"></i> List</a></li>
 	</ul>
 </nav>
 

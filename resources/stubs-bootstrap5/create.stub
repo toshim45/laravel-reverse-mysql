@@ -1,8 +1,8 @@
 @extends('layout')
 @section('content')
-<nav class="navbar navbar-inverse">
-	<ul class="nav navbar-nav">
-		<li><a href="{{ URL::to('{{tableUrlName}}') }}"><i class="fa fa-list"></i> List</a></li>
+<nav>
+	<ul class="nav">
+		<li class="nav-item"><a class="nav-link" href="{{ URL::to('{{tableUrlName}}') }}"><i class="fa fa-list"></i> List</a></li>
 	</ul>
 </nav>
 
