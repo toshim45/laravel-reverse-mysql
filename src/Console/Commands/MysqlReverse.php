@@ -252,6 +252,7 @@ class MysqlReverse extends Command {
 		$content = str_replace('{{tableFilter}}', $filters, $content);
 		$content = str_replace('{{tableUrlName}}', $tableUrl, $content);
 		$content = str_replace('{{tableName}}', $table, $content);
+		$content = str_replace('{{tableTotal}}', '{{$models->count()}}', $content);
 		$content = str_replace('{{tableTitle}}', str_replace("_", " ", Str::title($table)), $content);
 		$content = str_replace('{{tableContent}}', implode("" . self::EOL, $generated), $content);
 
@@ -412,8 +413,8 @@ class MysqlReverse extends Command {
 			}
 			$generated[] = sprintf('->%s($%s)', Str::camel($k), Str::camel($k));
 		}
-		$generated[] = '->paginate($pageSize);';
-		$generated[] = sprintf('return view(\'%s.index\',[\'models\'=>$models,\'filters\'=>[', $table);
+		$generated[sizeof($generated)-1] .= ';';
+		$generated[] = sprintf('return view(\'%s.index\',[\'models\'=>$models->paginate($pageSize),\'total\'=>$models->count(),\'filters\'=>[', $table);
 		foreach ($columns as $k => $v) {
 			if (Str::startsWith($k, 'created') || Str::startsWith($k, 'updated')) {
 				continue;
@@ -448,7 +449,6 @@ class MysqlReverse extends Command {
 		];';
 
 		$generated[]   = sprintf('$reports = %s::select(%s)', $className, $quotedColumns);
-		$lastColumnKey = array_key_last($columns);
 		foreach ($columns as $k => $v) {
 			$columnSeparator = ($k == $lastColumnKey) ? ';' : '';
 			$generated[]     = sprintf('->%s(array_key_exists(\'%s\', $queries)?$queries[\'%s\']:\'\')%s', Str::camel($k), $k, $k, $columnSeparator);

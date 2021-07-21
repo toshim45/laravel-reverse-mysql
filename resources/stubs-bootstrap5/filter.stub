@@ -6,8 +6,8 @@
 </div>
 </div>
 <div class="box-footer">
-<div class="form-group">
-	{{ Form::button('<i class="fa fa-search"></i> Search', ['type' => 'submit', 'class' => 'btn btn-primary pull-right'] )  }}
+<div class="mt-3">
+{{ Form::button('<i class="fa fa-search"></i> Search', ['type' => 'submit', 'class' => 'btn btn-primary pull-right'] )  }}
 </div>
 </div>
 {{ Form::close() }}

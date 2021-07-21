@@ -13,6 +13,8 @@
 	</ul>
 </nav>
 {{tableFilter}}
+
+<h3> Total: {{tableTotal}} </h3>
 {{tableContent}}
 
 {{ $models->links() }}
