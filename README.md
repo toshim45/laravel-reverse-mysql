@@ -55,6 +55,7 @@ Do all generation **before you add some codes** to your new model & controller
 - tableUrlName
 - tableContent
 - tableTitle
+- tableTotal
 
 ### Stub Example
 
