@@ -130,6 +130,7 @@ class MysqlReverse extends Command {
 
 		$content = str_replace('{{tableUrlName}}', $tableUrl, $content);
 		$content = str_replace('{{tableName}}', $table, $content);
+		$content = str_replace('{{tableTitle}}', str_replace("_", " ", Str::title($table)), $content);
 		$content = str_replace('{{tableContent}}', implode("" . self::EOL, $generated), $content);
 
 		file_put_contents(resource_path() . '/views/' . $table . '/edit.blade.php', $content);
@@ -156,6 +157,7 @@ class MysqlReverse extends Command {
 
 		$content = str_replace('{{tableUrlName}}', $tableUrl, $content);
 		$content = str_replace('{{tableName}}', $table, $content);
+		$content = str_replace('{{tableTitle}}', str_replace("_", " ", Str::title($table)), $content);
 		$content = str_replace('{{tableContent}}', implode("" . self::EOL, $generated), $content);
 		file_put_contents(resource_path() . '/views/' . $table . '/show.blade.php', $content);
 	}
@@ -180,6 +182,7 @@ class MysqlReverse extends Command {
 
 		$content = str_replace('{{tableUrlName}}', $tableUrl, $content);
 		$content = str_replace('{{tableName}}', $table, $content);
+		$content = str_replace('{{tableTitle}}', str_replace("_", " ", Str::title($table)), $content);
 		$content = str_replace('{{tableContent}}', implode("" . self::EOL, $generated), $content);
 
 		file_put_contents(resource_path() . '/views/' . $table . '/create.blade.php', $content);

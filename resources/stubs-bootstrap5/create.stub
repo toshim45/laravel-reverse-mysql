@@ -1,5 +1,6 @@
 @extends('layout')
 @section('content')
+<h1>{{tableTitle}}</h1>
 <nav>
 	<ul class="nav">
 		<li class="nav-item"><a class="nav-link" href="{{ URL::to('{{tableUrlName}}') }}"><i class="fa fa-list"></i> List</a></li>
