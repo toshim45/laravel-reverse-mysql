@@ -67,3 +67,8 @@ pls check github [examples](https://github.com/toshim45/laravel-reverse-mysql/tr
 - Tested on laravel 5.6, 5.8, 6.*, 8.* need help for 7 (i dont think will support for 4.*)
 - For code formatting ~I'm working on formatting generated code, but for now~ you can use your IDE, already tried some code formatter, almost of them install binary in your vendor folder, I thought that is inappropriate, so just use your IDE formatter
 - only support mysql
+
+## TODO (Need Help)
+- laravel 7
+- form.stub so u will be able to customize input type field class
+- do u have any ideas ?
