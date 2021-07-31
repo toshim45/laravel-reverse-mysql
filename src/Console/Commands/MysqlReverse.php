@@ -12,7 +12,7 @@ class MysqlReverse extends Command {
 	 *
 	 * @var string
 	 */
-	protected $signature = 'reverse:mysql {table} {--c|controller} {--r|resource} {--s|stub} {--hard-reset} {--revert} {--csv}';
+	protected $signature = 'reverse:mysql {table} {--c|controller} {--r|resource} {--hard-reset} {--revert} {--csv}';
 
 	/**
 	 * The console command description.
@@ -453,9 +453,9 @@ class MysqlReverse extends Command {
 
 		$generated[]   = sprintf('$reports = %s::select(%s)', $className, $quotedColumns);
 		foreach ($columns as $k => $v) {
-			$columnSeparator = ($k == $lastColumnKey) ? ';' : '';
-			$generated[]     = sprintf('->%s(array_key_exists(\'%s\', $queries)?$queries[\'%s\']:\'\')%s', Str::camel($k), $k, $k, $columnSeparator);
+			$generated[]     = sprintf('->%s(array_key_exists(\'%s\', $queries)?$queries[\'%s\']:\'\')', Str::camel($k), $k, $k);
 		}
+		$generated[sizeof($generated)-1] .= ';';
 		$generated[] = '$callback = function () use ($reports,$csvHeaders) {
 			$handle = fopen(\'php://output\', \'w\');';
 		$generated[] = 'fputcsv($handle, $csvHeaders);
